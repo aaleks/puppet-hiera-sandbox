@@ -1,0 +1,64 @@
+#puppet module generate
+---
+classes:
+  - apache
+  - apt
+  - debug_with_path
+  - apache_list
+  - proxypass_generator
+#  - tomcat_list
+#  - jenkins
+
+profile::tomcat_list:
+  - tomcat_1
+  - tomcat_2
+  - tomcat_3
+  - tomcat_4
+  - tomcat_5
+
+ldap_servers:
+  - 10.132.17.196
+  - 10.132.17.195
+ 
+users:
+  joe:
+    home: '/home/joe'
+  jenkins:
+    password: 'mysecret'
+
+user_account::username:
+  - homer
+  - marge
+  - bart
+  - lisa
+  - maggie
+
+puppet_enterprise::profile::amq::broker::heap_mb: '9996'
+
+
+puppet_dynamic_host: 'test %{customhost}  before custom host variable '
+puppet_customhost: 'MYCUSTOMMMMEDDDHOSTTT'
+puppet_customhostsecond: 'MYCUSTOMMMMEDDDHOSTTTSSSSSSS'
+
+profile::dynamic::hostreplaced: "test var %{hiera('puppet_customhostsecond')}"
+
+
+profile:proxpass:
+  - path: "/a"
+    url: "http://%{hiera('puppet_customhostsecond')}/backend-a/"
+  - path: "/b"
+    url:  "http://%{hiera('puppet_customhostsecond')}/backend-b/"
+    params:
+      max: 20
+      ttl: 120
+      retry: 300
+  - path: "/c"
+    url:  "http://localhost/backend-c/"
+    setenv:
+      - proxy-nokeepalive 1
+      - force-proxy-request-1.0 1
+  - path: "/d"
+    url:  "http://localhost/backend-DDDD/"
+    setenv:
+      - proxy-nokeepalive 1
+    custom_fragment: "<TEST> custom Fragment for this PROXPASS</TEST>"

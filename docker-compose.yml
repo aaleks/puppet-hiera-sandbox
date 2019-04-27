@@ -1,0 +1,65 @@
+version: '2'
+
+services:
+  puppet:
+    container_name: puppet
+    hostname: puppet
+    image: puppet/puppetserver
+    ports:
+      - 8140
+    volumes:
+      - ./code:/etc/puppetlabs/code/
+      - ./conf/hiera.yaml:/etc/puppetlabs/puppet/hiera.yaml
+      - ./puppet/ssl:/etc/puppetlabs/puppet/ssl/
+      - ./puppet/serverdata:/opt/puppetlabs/server/data/puppetserver/
+    environment:
+      - PUPPETDB_SERVER_URLS=https://puppetdb.local:8081
+    links:
+      - puppetdb:puppetdb.local
+
+  puppetdbpostgres:
+    container_name: postgres
+    image: puppet/puppetdb-postgres
+    environment:
+      - POSTGRES_PASSWORD=puppetdb
+      - POSTGRES_USER=puppetdb
+    expose:
+      - 5432
+    volumes:
+      - ./puppetdb-postgres/data:/var/lib/postgresql/data/
+
+  puppetdb:
+    hostname: puppetdb
+    image: puppet/puppetdb
+    ports:
+      - 8080
+      - 8081
+    volumes:
+      - ./puppetdb/ssl:/etc/puppetlabs/puppet/ssl/
+
+  puppetboard:
+    image: puppet/puppetboard
+    ports:
+      - 8000
+
+  puppetexplorer:
+    image: puppet/puppetexplorer
+    ports:
+      - 80
+    read_only: true
+
+  puppetagent:
+    image: puppet/puppet-agent-ubuntu
+    container_name: puppetagentubuntu
+    hostname: puppetagentubuntu
+    entrypoint: tail -f /etc/hosts
+    depends_on:
+      - puppet
+
+  puppetagentsecond:
+    image: puppet/puppet-agent-ubuntu
+    container_name: puppetagentsecond
+    hostname: puppetagentsecond
+    entrypoint: tail -f /etc/hosts
+    depends_on:
+      - puppet
